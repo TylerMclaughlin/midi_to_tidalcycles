@@ -23,7 +23,7 @@ def infer_polyphony(midi_pattern):
     n_adjacent_on_events = 0
     inferred_polyphony = 0
     for index, event in enumerate(midi_pattern[-1]):
-        if type(event) == midi.events.NoteOnEvent: # starting note off
+        if type(event) == midi.events.NoteOnEvent: # starting note on 
             n_adjacent_on_events += 1
             inferred_polyphony = max(inferred_polyphony, n_adjacent_on_events)
         elif type(event) == midi.events.NoteOffEvent:
@@ -33,7 +33,7 @@ def infer_polyphony(midi_pattern):
      
 def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = False, print_events = False, debug = False):
     pattern = midi.read_midifile(filename)
-    ticks_per_quanta = pattern.resolution/quanta_per_qn  # ticks per quarter note * quarter note per quanta
+    ticks_per_quanta = pattern.resolution/quanta_per_qn  # = ticks per quarter note * quarter note per quanta
     last_event = pattern[-1][-1]
     assert type(last_event) == midi.events.EndOfTrackEvent
     cum_ticks = 0
@@ -63,13 +63,11 @@ def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = 
                 print(voice)
                 print("quanta number ", end = "")
                 print(quanta_index)
-            note_vector[quanta_index,voice] = event.pitch #- pitch_offset
+            note_vector[quanta_index,voice] = event.pitch
             if legato_on: 
                 currently_active_notes[event.pitch] = [quanta_index, voice]
             if velocity_on:
-                velocity_vector[quanta_index,voice] = event.velocity #- pitch_offset
-            #print(midinote_to_note_name(event.pitch))
-            #print(event.velocity)
+                velocity_vector[quanta_index,voice] = event.velocity
         elif (type(event) == midi.events.NoteOffEvent) & (legato_on):
             quanta_note_off_index = int(cum_ticks/ticks_per_quanta)
             note_length = quanta_note_off_index - currently_active_notes[event.pitch][0]
@@ -102,7 +100,8 @@ def vel_to_amp(vel):
 
 def print_midi_stack(notes, vels = None, legatos = None):
     n_voices = len(notes[0,:])
-    add_stack = (n_voices != 1) | (vels is not None) | (legatos is not None) # control bool
+    # determine whether a stack is needed and create a control boolean
+    add_stack = (n_voices != 1) | (vels is not None) | (legatos is not None)
     if add_stack:
         print("stack [")
     # iterate over voices
@@ -110,10 +109,10 @@ def print_midi_stack(notes, vels = None, legatos = None):
         notes_names  = [midinote_to_note_name(x) for x in notes[:,j]]
         print("    n \"", end = "")
         print(*notes_names, sep=' ', end = "")
-        if (legatos is None) & (vels is None) & (j != n_voices - 1):
+        if (legatos is None) & (vels is None) & (j != n_voices - 1): # add a quote and a comma if there are more voices in the stack
             print("\",")  
         else:
-            print("\"") 
+            print("\"") # else this is the last voice, so close the quotes
         if vels is not None:
             print("    # amp \"", end = "")
             note_vels  = [vel_to_amp(x) for x in vels[:,j]]
@@ -139,9 +138,6 @@ def print_midi_stack(notes, vels = None, legatos = None):
                 print("\"\n]")
         if (legatos is None) & (vels is None) & (j == n_voices - 1) & (add_stack):
             print("]")  
-    #if add_stack and (legatos is None) and (vels is not None):
-    #    print("edge case")
-    #    print("]")  
 
 
 if __name__ == "__main__":
