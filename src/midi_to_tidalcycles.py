@@ -30,9 +30,9 @@ def infer_polyphony(midi_pattern):
     return inferred_polyphony
    
      
-def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = False):
+def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = False, print_events = False):
     pattern = midi.read_midifile(filename)
-    ticks_per_quanta = pattern.resolution/quanta_per_qn  # ticks per quarter     note * quarter note per quanta
+    ticks_per_quanta = pattern.resolution/quanta_per_qn  # ticks per quarter note * quarter note per quanta
     last_event = pattern[-1][-1]
     assert type(last_event) == midi.events.EndOfTrackEvent
     cum_ticks = 0
@@ -40,7 +40,7 @@ def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = 
         cum_ticks += event.tick
     n_quanta = cum_ticks/ticks_per_quanta
     polyphony = infer_polyphony(pattern)
-    print("inferred polyphony is :")
+    print("inferred polyphony is ", end = "")
     print(polyphony)
     note_vector = np.zeros((n_quanta, polyphony)) 
     if velocity_on:
@@ -51,11 +51,13 @@ def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = 
     cum_ticks = 0
     voice = -1 
     for event in pattern[-1]:
-        print(event)
+        if print_events:
+            print(event)
         cum_ticks += event.tick
         if type(event) == midi.events.NoteOnEvent:
             voice += 1
             quanta_index = int(cum_ticks/ticks_per_quanta)
+            print(voice)
             note_vector[quanta_index,voice] = event.pitch #- pitch_offset
             if legato_on: 
                 currently_active_notes[event.pitch] = [quanta_index, voice]
@@ -129,9 +131,30 @@ def print_midi_stack(notes, vels = None, legatos = None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("midi_files",nargs="*")
+    parser.add_argument("--events","-e", const = True, default = False, help = "print midi event information", action = 'store_const')
+    parser.add_argument("--dimensions","-d", const = True, default = False, help ="print midi dimensions", action = 'store_const')
+    parser.add_argument("--resolution","-q", default = 4, type = int, help = "specify number of quanta per quarter note")
+    parser.add_argument("--legato","-l", const = True, default = False, help = "print legato pattern", action = 'store_const')
+    parser.add_argument("--amp","-a", const = True, default = False, help = "print amplitude pattern", action = 'store_const')
     args = parser.parse_args()
     for midi_file in args.midi_files:
          print(midi_file)
-         notes, vels, legatos  = midi_to_array(midi_file, quanta_per_qn = 1, velocity_on = True, legato_on = True)
-         print(notes.shape)
+         print(args.events)
+         data = midi_to_array(midi_file, quanta_per_qn = args.resolution, velocity_on = args.amp, legato_on = args.legato, print_events = args.events)
+         vels = None
+         legatos = None
+         if args.amp:
+             if args.legato:
+                 notes, vels, legatos = data
+             else:
+                 notes, vels = data
+         elif args.legato:
+                 notes, legatos = data
+         else:
+             notes = data
+         if args.dimensions:
+             print('quanta: ',end = '')
+             print(notes.shape[0])
+             print('voices: ',end = '')
+             print(notes.shape[1])
          print_midi_stack(notes, vels, legatos)
