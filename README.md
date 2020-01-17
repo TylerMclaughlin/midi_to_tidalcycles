@@ -1,5 +1,5 @@
 # midi_to_tidalcycles
-Command-line tool for converting polyphonic MIDI files to tidalcycles syntax.  
+Command-line tool for converting polyphonic MIDI files to TidalCycles syntax.  
 
 ## Requirements
 * Numpy (tested on version 1.12.1)
