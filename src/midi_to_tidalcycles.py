@@ -3,6 +3,10 @@ import midi
 import numpy as np
 import os
 import argparse
+import sys
+
+print(sys.version)
+
 
 def midinote_to_note_name(midi_note):
     if midi_note == 0.0:
@@ -100,13 +104,19 @@ def vel_to_amp(vel):
     return round(vel/127., 2)
 
 def print_midi_stack(notes, vels = None, legatos = None):
-    print("stack [")
+    n_voices = len(notes[0,:])
+    add_stack = (n_voices != 1) | (vels is not None) | (legatos is not None) # control bool
+    if add_stack:
+        print("stack [")
     # iterate over voices
-    for j in range(0,len(notes[0,:])):
+    for j in range(0,n_voices):
         notes_names  = [midinote_to_note_name(x) for x in notes[:,j]]
         print("    n \"", end = "")
         print(*notes_names, sep=' ', end = "")
-        print("\"") 
+        if (legatos is None) & (vels is None) & (j != n_voices - 1):
+            print("\",")  
+        else:
+            print("\"") 
         if vels is not None:
             print("    # amp \"", end = "")
             note_vels  = [vel_to_amp(x) for x in vels[:,j]]
@@ -130,6 +140,11 @@ def print_midi_stack(notes, vels = None, legatos = None):
             # otherwise close the stack
             else:
                 print("\"\n]")
+        if (legatos is None) & (vels is None) & (j == n_voices - 1) & (add_stack):
+            print("]")  
+    #if add_stack and (legatos is None) and (vels is not None):
+    #    print("edge case")
+    #    print("]")  
 
 
 if __name__ == "__main__":
@@ -144,7 +159,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     for midi_file in args.midi_files:
          print(midi_file)
-         print(args.events)
          data = midi_to_array(midi_file, quanta_per_qn = args.resolution, velocity_on = args.amp, legato_on = args.legato, print_events = args.events, debug = args.debug)
          vels = None
          legatos = None
