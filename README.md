@@ -35,7 +35,7 @@ stack [
     # legato "4.0 0.0 0.0 0.0 4.0 0.0 0.0 0.0 4.0 0.0 0.0 0.0 2.0 0.0 2.0 0.0 2.0 0.0 2.0 0.0 2.0 0.0 2.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0"
 ]
 ```
-to standard out.  This "stack" expression is intended to be copied and pasted into TidalCycles.  Prepend something like `d1 $ slow 8` and append ` # s "midi" # midichan 0` to this stack to start sending your midi signal from TidalCycles.
+to standard out.  This "stack" expression is intended to be copied and pasted into TidalCycles.  Prepend something like `d1 $ slow 8 $` and append ` # s "midi" # midichan 0` to this stack to start sending your midi signal from TidalCycles.
 
 ## Options
 
