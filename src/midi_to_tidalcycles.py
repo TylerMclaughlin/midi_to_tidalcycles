@@ -3,9 +3,6 @@ import midi
 import numpy as np
 import os
 import argparse
-import sys
-
-print(sys.version)
 
 
 def midinote_to_note_name(midi_note):
