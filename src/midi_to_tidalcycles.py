@@ -215,4 +215,7 @@ if __name__ == "__main__":
              print(notes.shape[0])
              print('voices: ',end = '')
              print(notes.shape[1])
+         # syncs tempo across all midis!
+         slow_cmd = "slow (" + str(notes.shape[0]/args.resolution) + "/4) $ "
+         print(slow_cmd, end = "")
          print_midi_stack(notes, vels, legatos, consolidate = args.consolidate)
