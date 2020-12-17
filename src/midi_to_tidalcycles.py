@@ -98,7 +98,42 @@ def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = 
 def vel_to_amp(vel):
     return round(vel/127., 2)
 
-def print_midi_stack(notes, vels = None, legatos = None):
+def simplify_repeats(list_pattern):
+    """
+    Converts ['a','a','b','a','b', 'b','b'] to ['a!2', 'b','a','b!3']
+    """
+    n_repeats = 0
+    output_list = []
+    for i, x in enumerate(list_pattern):
+        # if not the last element
+        if i != len(list_pattern) - 1:
+            # if the next element is a repeat
+            # increment the counter
+            if x == list_pattern[i + 1]:
+                n_repeats += 1
+            # if next element is different and current element is not a repeat.
+            elif n_repeats == 0:
+                output_list.append(x)
+            # otherwise there was a repeat that terminates now.
+            else: 
+                new_x = str(x) + '!' + str(n_repeats + 1)
+                output_list.append(new_x) 
+                n_repeats = 0
+        # handle last element
+        else:
+            # simple case, last element is not a repeat
+            if n_repeats == 0:
+                output_list.append(x)
+            # the penultimate position matches the last. 
+            else:
+                new_x = str(x) + '!' + str(n_repeats + 1)
+                output_list.append(new_x) 
+                n_repeats = 0
+
+    return output_list
+
+
+def print_midi_stack(notes, vels = None, legatos = None, consolidate = None):
     n_voices = len(notes[0,:])
     # determine whether a stack is needed and create a control boolean
     add_stack = (n_voices != 1) | (vels is not None) | (legatos is not None)
@@ -107,6 +142,8 @@ def print_midi_stack(notes, vels = None, legatos = None):
     # iterate over voices
     for j in range(0,n_voices):
         notes_names  = [midinote_to_note_name(x) for x in notes[:,j]]
+        if consolidate:
+            notes_names = simplify_repeats(notes_names)
         print("    n \"", end = "")
         print(*notes_names, sep=' ', end = "")
         if (legatos is None) & (vels is None) & (j != n_voices - 1): # add a quote and a comma if there are more voices in the stack
@@ -116,6 +153,8 @@ def print_midi_stack(notes, vels = None, legatos = None):
         if vels is not None:
             print("    # amp \"", end = "")
             note_vels  = [vel_to_amp(x) for x in vels[:,j]]
+            if consolidate:
+                note_vels = simplify_repeats(note_vels)
             print(*note_vels, sep=' ', end = "")
             # add comma if it's not the last voice and if there are no legatos
             if legatos is None:
@@ -129,6 +168,8 @@ def print_midi_stack(notes, vels = None, legatos = None):
         if legatos is not None:
             print("    # legato \"", end = "")
             note_legatos  = [x for x in legatos[:,j]]
+            if consolidate:
+                note_legatos = simplify_repeats(note_legatos)
             print(*note_legatos, sep=' ', end = "")
             # add comma if it's not the last voice
             if not j == len(notes[0,:]) - 1:
@@ -140,6 +181,9 @@ def print_midi_stack(notes, vels = None, legatos = None):
             print("]")  
 
 
+
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("midi_files",nargs="*")
@@ -149,12 +193,14 @@ if __name__ == "__main__":
     parser.add_argument("--resolution","-q", default = 4, type = int, help = "specify number of quanta per quarter note")
     parser.add_argument("--legato","-l", const = True, default = False, help = "print legato pattern", action = 'store_const')
     parser.add_argument("--amp","-a", const = True, default = False, help = "print amplitude pattern", action = 'store_const')
+    parser.add_argument("--consolidate","-c", const = True, default = False, help = "consolidate repeated notes and values with '!' notation", action = 'store_const')
     args = parser.parse_args()
     for midi_file in args.midi_files:
          print(midi_file)
          data = midi_to_array(midi_file, quanta_per_qn = args.resolution, velocity_on = args.amp, legato_on = args.legato, print_events = args.events, debug = args.debug)
          vels = None
          legatos = None
+         consolidate = None
          if args.amp:
              if args.legato:
                  notes, vels, legatos = data
@@ -169,4 +215,4 @@ if __name__ == "__main__":
              print(notes.shape[0])
              print('voices: ',end = '')
              print(notes.shape[1])
-         print_midi_stack(notes, vels, legatos)
+         print_midi_stack(notes, vels, legatos, consolidate = args.consolidate)
