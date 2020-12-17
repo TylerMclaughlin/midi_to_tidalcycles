@@ -5,7 +5,7 @@ Example of MIDI data output from TidalCycles code:
 ![Alt text](figures/reconstructed_midi.png?raw=true "Example of a reconstructed MIDI file")
 
 Extreme example of a 2 minute passage converted to TidalCycles code with pitch, note velocity, and legato data preserved:
-![Alt text](tc_from_midi_piano.png?raw=true "Extreme Code Example")
+![Alt text](figures/tc_from_midi_piano.png?raw=true "Extreme Code Example")
 
 ## Requirements
 * Numpy (Tested on numpy version 1.12.1)
