@@ -55,6 +55,7 @@ to standard out.  This "stack" expression is intended to be copied and pasted in
 -e, --events            print MIDI event information
 -d, --debug             print MIDI event information, voice numbers, and quanta numbers for debugging
 -s, --shape             print MIDI shape (number of quanta and polyphonic voices)
+-H, --hide              hide inferred polyphony and midi file info (useful for automatic copying of tidalcycles code) 
 ```
 
 ## More examples

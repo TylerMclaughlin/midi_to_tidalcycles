@@ -31,7 +31,7 @@ def infer_polyphony(midi_pattern):
     return inferred_polyphony
    
      
-def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = False, print_events = False, debug = False):
+def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = False, print_events = False, debug = False, hide = False):
     pattern = midi.read_midifile(filename)
     ticks_per_quanta = pattern.resolution/quanta_per_qn  # = ticks per quarter note * quarter note per quanta
     last_event = pattern[-1][-1]
@@ -41,8 +41,9 @@ def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = 
         cum_ticks += event.tick
     n_quanta = cum_ticks/ticks_per_quanta
     polyphony = infer_polyphony(pattern)
-    print("inferred polyphony is ", end = "")
-    print(polyphony)
+    if not hide:
+        print("inferred polyphony is ", end = "")
+        print(polyphony)
     note_vector = np.zeros((n_quanta, polyphony)) 
     if velocity_on:
         velocity_vector = np.zeros((n_quanta, polyphony))
@@ -194,10 +195,12 @@ if __name__ == "__main__":
     parser.add_argument("--legato","-l", const = True, default = False, help = "print legato pattern", action = 'store_const')
     parser.add_argument("--amp","-a", const = True, default = False, help = "print amplitude pattern", action = 'store_const')
     parser.add_argument("--consolidate","-c", const = True, default = False, help = "consolidate repeated notes and values with '!' notation", action = 'store_const')
+    parser.add_argument("--hide","-H", const = True, default = False, help = "hide printing name of midi file and inferred polyphony", action = 'store_const')
     args = parser.parse_args()
     for midi_file in args.midi_files:
-         print(midi_file)
-         data = midi_to_array(midi_file, quanta_per_qn = args.resolution, velocity_on = args.amp, legato_on = args.legato, print_events = args.events, debug = args.debug)
+         if not args.hide:
+             print(midi_file)
+         data = midi_to_array(midi_file, quanta_per_qn = args.resolution, velocity_on = args.amp, legato_on = args.legato, print_events = args.events, debug = args.debug, hide = args.hide)
          vels = None
          legatos = None
          consolidate = None
