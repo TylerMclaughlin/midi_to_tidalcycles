@@ -1,4 +1,4 @@
-# midi_to_tidalcycles
+# midi to tidalcycles
 Command-line tool for converting polyphonic MIDI files to TidalCycles syntax.  
 
 
