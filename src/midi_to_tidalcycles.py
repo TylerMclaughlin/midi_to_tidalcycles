@@ -39,7 +39,9 @@ def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = 
     cum_ticks = 0
     for index, event in enumerate(pattern[-1]):
         cum_ticks += event.tick
-    n_quanta = cum_ticks/ticks_per_quanta
+    # this int() is just for type matching in python 3 and shouldn't be rounding anything-- 
+    # n_quanta should already be an int.
+    n_quanta = int(cum_ticks/ticks_per_quanta)
     polyphony = infer_polyphony(pattern)
     if not hide:
         print("inferred polyphony is ", end = "")
