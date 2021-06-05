@@ -1,9 +1,5 @@
 # midi_to_tidalcycles
-Command-line tool for converting polyphonic MIDI files to TidalCycles code expressions.  
-=======
-# midi to tidalcycles
-Command-line tool for converting polyphonic MIDI files to TidalCycles syntax.  
-
+Command-line tool for converting polyphonic MIDI files to TidalCycles code expressions.
 
 (Extreme) example of a >4 minute piano improvisation converted to TidalCycles code with pitch, note velocity, and legato data preserved.  Here is the TidalCycles code generated from the recorded MIDI:
 ![Alt text](figures/tc_from_midi_piano.png?raw=true "Extreme Code Example")
