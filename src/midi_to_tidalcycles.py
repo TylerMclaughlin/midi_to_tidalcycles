@@ -101,9 +101,10 @@ def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = 
 def vel_to_amp(vel):
     return round(vel/127., 2)
 
-def simplify_repeats(list_pattern):
+def simplify_repeats(list_pattern, simplify_zeros = True):
     """
-    Converts ['a','a','b','a','b', 'b','b'] to ['a!2', 'b','a','b!3']
+    Converts ['a', 'a', 'b', 'a', 'b', 'b', 'b'] to ['a!2', 'b', 'a', 'b!3']
+    simplify_zeros (default) converts 0.0! to 0!  
     """
     n_repeats = 0
     output_list = []
@@ -133,6 +134,8 @@ def simplify_repeats(list_pattern):
                 output_list.append(new_x) 
                 n_repeats = 0
 
+    if simplify_zeros:
+        output_list = [x.replace('0.0!','0!') if isinstance(x, str) else x for x in output_list]
     return output_list
 
 
@@ -147,14 +150,14 @@ def print_midi_stack(notes, vels = None, legatos = None, consolidate = None):
         notes_names  = [midinote_to_note_name(x) for x in notes[:,j]]
         if consolidate:
             notes_names = simplify_repeats(notes_names)
-        print("    n \"", end = "")
+        print("     n \"", end = "")
         print(*notes_names, sep=' ', end = "")
         if (legatos is None) & (vels is None) & (j != n_voices - 1): # add a quote and a comma if there are more voices in the stack
             print("\",")  
         else:
             print("\"") # else this is the last voice, so close the quotes
         if vels is not None:
-            print("    # amp \"", end = "")
+            print("     # amp \"", end = "")
             note_vels  = [vel_to_amp(x) for x in vels[:,j]]
             if consolidate:
                 note_vels = simplify_repeats(note_vels)
@@ -165,11 +168,11 @@ def print_midi_stack(notes, vels = None, legatos = None, consolidate = None):
                     print("\",")
                 # otherwise close the stack
                 else:
-                    print("\"\n]")
+                    print("\"\n     ]")
             else:  # if legatos is not None 
                 print("\"")
         if legatos is not None:
-            print("    # legato \"", end = "")
+            print("     # legato \"", end = "")
             note_legatos  = [x for x in legatos[:,j]]
             if consolidate:
                 note_legatos = simplify_repeats(note_legatos)
@@ -179,9 +182,9 @@ def print_midi_stack(notes, vels = None, legatos = None, consolidate = None):
                 print("\",")
             # otherwise close the stack
             else:
-                print("\"\n]")
+                print("\"\n     ]")
         if (legatos is None) & (vels is None) & (j == n_voices - 1) & (add_stack):
-            print("]")  
+            print("     ]")  
 
 
 
