@@ -136,6 +136,7 @@ def simplify_repeats(list_pattern, simplify_zeros = True):
 
     if simplify_zeros:
         output_list = [x.replace('0.0!','0!') if isinstance(x, str) else x for x in output_list]
+        output_list = [x.replace(' 0.0 ',' 0 ') if isinstance(x, str) else x for x in output_list]
     return output_list
 
 
