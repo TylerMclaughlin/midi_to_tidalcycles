@@ -201,6 +201,9 @@ produces the following copyable TidalCycles code:
 let my_jazz_chord_library p = select p [n "[-8, -12, -5, -3]", n "[-4, -7, -10, -1]", n "[-3, -8, -5, 0]", n "[-4, -1, 2, -7]", n "[-5, -3, 4, 0]", n "[-4, 2, 5, -1]", n "[-3, 7, 0, 4]", n "[-1, 0, 4, 7]"]
 ```
 
+where `p`, the input to `select`, is a float between 0 and 1 (or a pattern of floats!).
+
+
 ### Extracting melodic sequences 
 
 This functionality extracts only the notes (and their velocities) in the order in which they are played in the MIDI file.  The output format is two monophonic patterns: one for notes and one for amps (MIDI velocity between 0 and 1). 
