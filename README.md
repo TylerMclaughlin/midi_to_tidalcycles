@@ -204,9 +204,10 @@ let my_jazz_chord_library p = select p [n "[-8, -12, -5, -3]", n "[-4, -7, -10, 
 
 ### Extracting melodic sequences 
 
-This functionality extracts only the notes (and their velocities) in the order in which they are played in the midi file.  The output format is a pattern of notes and amps.  It only looks at the note onsets. 
+This functionality extracts only the notes (and their velocities) in the order in which they are played in the MIDI file.  The output format is two monophonic patterns: one for notes and one for amps (MIDI velocity between 0 and 1). 
 
-Why output a pattern of notes and a pattern of amplitudes?  Patterns are a convenient input to the
+Why output a pattern of notes and a pattern of amplitudes?  Patterns are flexible.  
+They are a convenient input to the
 variants of the `nTake` and `ampTake` functions I wrote (below).  In addition to accepting patterns instead of a list, these variant functions also allow you to control the total number of notes or amplitudes to take.  This can be used to limit the amount of "cross-rhythm chaos" that can happen when using a `struct` function with N notes and `nTake` with M != N notes, for example.  
 
 ```haskell
