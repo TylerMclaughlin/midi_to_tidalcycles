@@ -1,5 +1,5 @@
 # midi to tidalcycles
-Command-line tool for converting polyphonic MIDI files to TidalCycles code expressions.
+Command-line tools for converting polyphonic MIDI files to TidalCycles code expressions.
 
 (Extreme) example of a >4 minute piano improvisation converted to TidalCycles code with pitch, note velocity, and legato data preserved.  Here is the TidalCycles code generated from the recorded MIDI:
 ![Alt text](figures/tc_from_midi_piano.png?raw=true "Extreme Code Example")
@@ -179,4 +179,49 @@ slow (1.5/4)  $ stack [
     # legato "1.0 1.0 2.0 0.0 1.0 1.0"
 ]
 ```
+## Additional functionality
 
+### Extracting chords from MIDI
+
+This functionality allows you to extract a 'library' of chords/voicings from a MIDI passage.  The output format is tailored for use in the `select` TidalCycles function (http://tidalcycles.org/docs/reference/conditions/#select).
+This command extracts only the chords and ignores the rhythm, sustain, and velocity data of the MIDI file.
+
+Duplicate chords found in the MIDI file are discarded.
+
+The optional argument after the MIDI file specifies the name of the produced library.
+
+This example:
+
+`python src/extract_chords.py test_examples/jazz-chords_played-live_quadraphonic_125bpm.mid my_jazz_chord_library`
+
+produces the following TidalCycles code:
+
+```haskell
+-- 8 chords
+let my_jazz_chord_library p = select p [n "[-8, -12, -5, -3]", n "[-4, -7, -10, -1]", n "[-3, -8, -5, 0]", n "[-4, -1, 2, -7]", n "[-5, -3, 4, 0]", n "[-4, 2, 5, -1]", n "[-3, 7, 0, 4]", n "[-1, 0, 4, 7]"]
+```
+.
+
+### Extracting melodic sequences 
+
+This functionality extracts only the notes (and their velocities) in the order in which they are played in the midi file.  The output format is a pattern of notes and amps.  It only looks at the note onsets. 
+
+Why output a pattern of notes and a pattern of amplitudes?  Patterns are a convenient input to the
+variants of the `nTake` and `ampTake` functions I wrote (below).  In addition to accepting patterns instead of a list, these variant functions also allow you to control the total number of notes or amplitudes to take.  This can be used to limit the amount of "cross-rhythm chaos" that can happen when using a `struct` function with N notes and `nTake` with M != N notes, for example.  
+
+```haskell
+let patternToList pat = map value $ sortOn whole $ queryArc pat (Arc 0 1)                                       
+    nT name amt p = nTake name (take amt (cycle (patternToList p)))                                             
+    aT name amt p = ampTake name (take amt (cycle (patternToList p)))                                           
+```
+
+This example command
+
+`python src/extract_melody.py test_examples/simple_legato_monophonic.mid`
+
+autogenerates the following TidalCycles code:
+
+```haskell
+nT "notez" 5 "0 2 3 5 2"
+# aT "ampz" 5 "0.79 0.79 0.79 0.79 0.79"
+```
