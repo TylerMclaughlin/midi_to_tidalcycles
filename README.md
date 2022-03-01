@@ -188,25 +188,24 @@ This command extracts only the chords and ignores the rhythm, sustain, and veloc
 
 Duplicate chords found in the MIDI file are discarded.
 
-The optional argument after the MIDI file specifies the name of the produced library.
+The optional command-line argument after the MIDI file specifies *the name of the produced library*.
 
 This example:
 
 `python src/extract_chords.py test_examples/jazz-chords_played-live_quadraphonic_125bpm.mid my_jazz_chord_library`
 
-produces the following TidalCycles code:
+produces the following copyable TidalCycles code:
 
 ```haskell
 -- 8 chords
 let my_jazz_chord_library p = select p [n "[-8, -12, -5, -3]", n "[-4, -7, -10, -1]", n "[-3, -8, -5, 0]", n "[-4, -1, 2, -7]", n "[-5, -3, 4, 0]", n "[-4, 2, 5, -1]", n "[-3, 7, 0, 4]", n "[-1, 0, 4, 7]"]
 ```
-.
 
 ### Extracting melodic sequences 
 
 This functionality extracts only the notes (and their velocities) in the order in which they are played in the MIDI file.  The output format is two monophonic patterns: one for notes and one for amps (MIDI velocity between 0 and 1). 
 
-Why output a pattern of notes and a pattern of amplitudes?  Patterns are flexible.  
+Why output a pattern of notes and a pattern of amplitudes?  Patterns are a flexible starting point for composition.  
 They are a convenient input to the
 variants of the `nTake` and `ampTake` functions I wrote (below).  In addition to accepting patterns instead of a list, these variant functions also allow you to control the total number of notes or amplitudes to take.  This can be used to limit the amount of "cross-rhythm chaos" that can happen when using a `struct` function with N notes and `nTake` with M != N notes, for example.  
 
@@ -220,7 +219,7 @@ This example command
 
 `python src/extract_melody.py test_examples/simple_legato_monophonic.mid`
 
-autogenerates the following TidalCycles code:
+autogenerates the following copyable TidalCycles code:
 
 ```haskell
 nT "notez" 5 "0 2 3 5 2"
