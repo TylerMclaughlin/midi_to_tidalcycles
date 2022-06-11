@@ -69,21 +69,35 @@ def chords_to_tc_select(chords, name,  unique = True):
     out = string_head + string_mid + string_tail
     print(out)
 
-def midi_to_tc_chords(input_midi_file, chord_prefix):
+def midi_to_tc_chords(input_midi_file, chord_prefix, unique = True):
     chord_tuples = local_maxima(get_chords(input_midi_file))
     #chords_to_tc(chord_tuples, chord_prefix)
-    chords_to_tc_select(chord_tuples, chord_prefix)
+    chords_to_tc_select(chord_tuples, chord_prefix, unique = unique)
 
 if __name__ == '__main__':
     import sys
 
-    input_midi_file = sys.argv[1]
 
-    if len(sys.argv) > 2:
-        chord_prefix = sys.argv[2]
+    # default:  don't make chords unique
+    unique = False
+    if len(sys.argv) > 4:
+        raise ValueError('Too many input arguments.')
+    if len(sys.argv) == 4:
+        unique = True
+        input_midi_file = sys.argv[2]
+        chord_prefix = sys.argv[3]
+    elif len(sys.argv) == 3:
+        if sys.argv[1] == '-u':
+            unique = True
+            input_midi_file = sys.argv[2]
+            chord_prefix = input_midi_file.split('/')[-1].split('.')[0].replace(' ', '-') 
+        else:
+            input_midi_file = sys.argv[1]
+            chord_prefix = sys.argv[2]
     else:
+        input_midi_file = sys.argv[1]
         chord_prefix = input_midi_file.split('/')[-1].split('.')[0].replace(' ', '-') 
 
 
-    midi_to_tc_chords(input_midi_file = input_midi_file, chord_prefix = chord_prefix)
+    midi_to_tc_chords(input_midi_file = input_midi_file, chord_prefix = chord_prefix, unique = unique)
 
