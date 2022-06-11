@@ -186,9 +186,9 @@ slow (1.5/4)  $ stack [
 This functionality allows you to extract a 'library' of chords/voicings from a MIDI passage.  The output format is tailored for use in the `select` TidalCycles function (http://tidalcycles.org/docs/reference/conditions/#select).
 This command extracts only the chords and ignores the rhythm, sustain, and velocity data of the MIDI file.
 
-Duplicate chords found in the MIDI file are discarded.
+Duplicate chords found in the MIDI file are discarded if the `-u` flag is given.
 
-The optional command-line argument after the MIDI file specifies *the name of the produced library*.
+The optional command-line string variable provided after the MIDI file specifies *the name of the produced library*.
 
 This example:
 
