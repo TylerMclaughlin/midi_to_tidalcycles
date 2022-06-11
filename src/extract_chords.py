@@ -61,6 +61,7 @@ def chords_to_tc_select(chords, name,  unique = True):
     """
     if unique:
         chords = make_unique(chords)
+    chords = [sorted(x) for x in chords]
     print('-- ' + str(len(chords)) + ' chords' )
     snippets = [tc_snippet(c) for c in chords ]
     string_head = 'let ' + name + ' p = select p [' 
