@@ -16,6 +16,15 @@ def midinote_to_note_name(midi_note):
     full_note_name = str(note_name) + str(octave_name)
     return full_note_name
 
+def midinote_to_scale_degree(midi_note, scale_list, z = 12):
+    if midi_note == 0.0:
+        return "~"
+    midi_note = int(midi_note) - 60
+    # for non-12-TET scales, z may not be 12.
+    q, r = divmod(midi_note, z) 
+    scale_degree = q*len(scale_list) + scale_list.index(r)
+    return scale_degree
+
 
 def infer_polyphony(midi_pattern):
     last_event = midi_pattern[-1][-1]
@@ -140,23 +149,40 @@ def simplify_repeats(list_pattern, simplify_zeros = True):
     return output_list
 
 
-def print_midi_stack(notes, vels = None, legatos = None, consolidate = None):
+def print_midi_stack(notes, vels = None, legatos = None, consolidate = None, scale = False):
     n_voices = len(notes[0,:])
+    if scale:
+        # just 12 tone for now
+        scale_list = sorted(list(set([x % 12 for x in notes.flatten()]))) 
+        scale_pat = " ".join([str(int(x)) for x in scale_list])
     # determine whether a stack is needed and create a control boolean
     add_stack = (n_voices != 1) | (vels is not None) | (legatos is not None)
     if add_stack:
         print("stack [")
     # iterate over voices
     for j in range(0,n_voices):
-        notes_names  = [midinote_to_note_name(x) for x in notes[:,j]]
+        if not scale:
+            notes_names = [midinote_to_note_name(x) for x in notes[:,j]]
+        elif scale:
+            notes_names = [midinote_to_scale_degree(x, scale_list) for x in notes[:,j]]
         if consolidate:
             notes_names = simplify_repeats(notes_names)
-        print("     n \"", end = "")
-        print(*notes_names, sep=' ', end = "")
+        if not scale:    
+            print("     n \"", end = "")
+            print(*notes_names, sep=' ', end = "")
+        elif scale:    
+            print("     n (tScale \"" + scale_pat + "\" $ \"", end = "")
+            print(*notes_names, sep=' ', end = "")
         if (legatos is None) & (vels is None) & (j != n_voices - 1): # add a quote and a comma if there are more voices in the stack
-            print("\",")  
-        else:
-            print("\"") # else this is the last voice, so close the quotes
+            if not scale:
+                print("\",")  
+            elif scale:
+                print("\" ),")  
+        else: # else this is the last voice, so just close the quotes
+            if not scale:
+                print("\"") 
+            elif scale:
+                print("\" )") # else this is the last voice, so close the quotes
         if vels is not None:
             print("     # amp \"", end = "")
             note_vels  = [vel_to_amp(x) for x in vels[:,j]]
@@ -196,11 +222,12 @@ if __name__ == "__main__":
     parser.add_argument("midi_files",nargs="*")
     parser.add_argument("--events","-e", const = True, default = False, help = "print midi event information", action = 'store_const')
     parser.add_argument("--debug","-d", const = True, default = False, help = "print midi event information, voice numbers, and quanta numbers for debugging", action = 'store_const')
-    parser.add_argument("--shape","-s", const = True, default = False, help ="print midi shape", action = 'store_const')
+    parser.add_argument("--shape","-p", const = True, default = False, help ="print midi shape", action = 'store_const')
     parser.add_argument("--resolution","-q", default = 4, type = int, help = "specify number of quanta per quarter note")
     parser.add_argument("--legato","-l", const = True, default = False, help = "print legato pattern", action = 'store_const')
     parser.add_argument("--amp","-a", const = True, default = False, help = "print amplitude pattern", action = 'store_const')
     parser.add_argument("--consolidate","-c", const = True, default = False, help = "consolidate repeated notes and values with '!' notation", action = 'store_const')
+    parser.add_argument("--scale","-s", const = True, default = False, help = "prints notes in a scale", action = 'store_const')
     parser.add_argument("--hide","-H", const = True, default = False, help = "hide printing name of midi file and inferred polyphony", action = 'store_const')
     args = parser.parse_args()
     for midi_file in args.midi_files:
@@ -227,4 +254,4 @@ if __name__ == "__main__":
          # syncs tempo across all midis!
          slow_cmd = "slow (" + str(notes.shape[0]/args.resolution) + "/4) $ "
          print(slow_cmd, end = "")
-         print_midi_stack(notes, vels, legatos, consolidate = args.consolidate)
+         print_midi_stack(notes, vels, legatos, consolidate = args.consolidate, scale = args.scale)
