@@ -172,7 +172,7 @@ def print_midi_stack(notes, vels = None, legatos = None, consolidate = None, sca
     n_voices = len(notes[0,:])
     if scale:
         # just 12 tone for now
-        scale_list = sorted(list(set([x % 12 for x in notes.flatten()]))) 
+        scale_list = sorted(list(set([x % 12 for x in notes.flatten() if x != 0.0])))
         scale_pat = " ".join([str(int(x)) for x in scale_list])
     # determine whether a stack is needed and create a control boolean
     add_stack = (n_voices != 1) | (vels is not None) | (legatos is not None)
