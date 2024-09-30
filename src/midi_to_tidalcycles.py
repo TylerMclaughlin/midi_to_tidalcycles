@@ -60,15 +60,20 @@ def infer_polyphony(midi_pattern):
      
 def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = False, print_events = False, debug = False, hide = False):
     pattern = midi.read_midifile(filename)
+
     ticks_per_quanta = pattern.resolution/quanta_per_qn  # = ticks per quarter note * quarter note per quanta
     last_event = pattern[-1][-1]
     assert type(last_event) == midi.events.EndOfTrackEvent
     cum_ticks = 0
     for index, event in enumerate(pattern[-1]):
         cum_ticks += event.tick
+    ticks_per_beat = pattern.resolution*4
+    pretail_total_beats = cum_ticks/float(ticks_per_beat)
+    total_beats = int(np.ceil(pretail_total_beats))
+    real_total_ticks = total_beats*ticks_per_beat
     # this int() is just for type matching in python 3 and shouldn't be rounding anything-- 
     # n_quanta should already be an int.
-    n_quanta = int(cum_ticks/ticks_per_quanta)
+    n_quanta = int(real_total_ticks/ticks_per_quanta)
     polyphony = infer_polyphony(pattern)
     if not hide:
         print("inferred polyphony is ", end = "")
@@ -172,7 +177,7 @@ def print_midi_stack(notes, vels = None, legatos = None, consolidate = None, sca
     n_voices = len(notes[0,:])
     if scale:
         # just 12 tone for now
-        scale_list = sorted(list(set([x % 12 for x in notes.flatten() if x != 0.0])))
+        scale_list = sorted(list(set([x % 12 for x in notes.flatten() if x != 0.0]))) 
         scale_pat = " ".join([str(int(x)) for x in scale_list])
     # determine whether a stack is needed and create a control boolean
     add_stack = (n_voices != 1) | (vels is not None) | (legatos is not None)
