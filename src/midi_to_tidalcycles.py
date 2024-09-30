@@ -25,32 +25,55 @@ def midinote_to_scale_degree(midi_note, scale_list, z = 12):
     scale_degree = q*len(scale_list) + scale_list.index(r)
     return scale_degree
 
-
-def infer_polyphony(midi_pattern):
+def assert_end_of_track(midi_pattern):
     last_event = midi_pattern[-1][-1]
     assert type(last_event) == midi.events.EndOfTrackEvent
+
+def get_event_type(event):
+    if type(event) == midi.events.NoteOnEvent:
+        if event.velocity != 0:
+            event_type = 'note_on_event'
+        # MIDI has a formatting quirk where noteOff events 
+        # can also be encoded as NoteOn with velocity 0
+        elif event.velocity == 0:
+            event_type = 'note_off_event'
+    elif (type(event) == midi.events.NoteOffEvent):
+        event_type = 'note_off_event'
+    else:
+        event_type = 'unknown'
+    return event_type
+
+
+def infer_polyphony(midi_pattern):
+    assert_end_of_track(midi_pattern)
     n_adjacent_on_events = 0
     inferred_polyphony = 0
     for index, event in enumerate(midi_pattern[-1]):
-        if type(event) == midi.events.NoteOnEvent: # starting note on 
+        event_type = get_event_type(event)
+        if event_type == 'note_on_event': # starting note on 
             n_adjacent_on_events += 1
             inferred_polyphony = max(inferred_polyphony, n_adjacent_on_events)
-        elif type(event) == midi.events.NoteOffEvent:
+        elif event_type == 'note_off_event':
             n_adjacent_on_events = 0
     return inferred_polyphony
    
      
 def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = False, print_events = False, debug = False, hide = False):
     pattern = midi.read_midifile(filename)
+
     ticks_per_quanta = pattern.resolution/quanta_per_qn  # = ticks per quarter note * quarter note per quanta
     last_event = pattern[-1][-1]
     assert type(last_event) == midi.events.EndOfTrackEvent
     cum_ticks = 0
     for index, event in enumerate(pattern[-1]):
         cum_ticks += event.tick
+    ticks_per_beat = pattern.resolution*4
+    pretail_total_beats = cum_ticks/float(ticks_per_beat)
+    total_beats = int(np.ceil(pretail_total_beats))
+    real_total_ticks = total_beats*ticks_per_beat
     # this int() is just for type matching in python 3 and shouldn't be rounding anything-- 
     # n_quanta should already be an int.
-    n_quanta = int(cum_ticks/ticks_per_quanta)
+    n_quanta = int(real_total_ticks/ticks_per_quanta)
     polyphony = infer_polyphony(pattern)
     if not hide:
         print("inferred polyphony is ", end = "")
@@ -64,10 +87,11 @@ def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = 
     cum_ticks = 0
     voice = -1 
     for event in pattern[-1]:
+        event_type = get_event_type(event)
         if print_events or debug:
             print(event)
         cum_ticks += event.tick
-        if type(event) == midi.events.NoteOnEvent:
+        if event_type == 'note_on_event': 
             voice += 1
             quanta_index = int(cum_ticks/ticks_per_quanta)
             if debug:
@@ -80,7 +104,7 @@ def midi_to_array(filename, quanta_per_qn = 4, velocity_on = False, legato_on = 
                 currently_active_notes[event.pitch] = [quanta_index, voice]
             if velocity_on:
                 velocity_vector[quanta_index,voice] = event.velocity
-        elif (type(event) == midi.events.NoteOffEvent) & (legato_on):
+        elif (event_type == 'note_off_event') & (legato_on):
             quanta_note_off_index = int(cum_ticks/ticks_per_quanta)
             note_length = quanta_note_off_index - currently_active_notes[event.pitch][0]
             legato_vector[currently_active_notes[event.pitch][0],currently_active_notes[event.pitch][1]] = note_length
@@ -153,7 +177,7 @@ def print_midi_stack(notes, vels = None, legatos = None, consolidate = None, sca
     n_voices = len(notes[0,:])
     if scale:
         # just 12 tone for now
-        scale_list = sorted(list(set([x % 12 for x in notes.flatten()]))) 
+        scale_list = sorted(list(set([x % 12 for x in notes.flatten() if x != 0.0]))) 
         scale_pat = " ".join([str(int(x)) for x in scale_list])
     # determine whether a stack is needed and create a control boolean
     add_stack = (n_voices != 1) | (vels is not None) | (legatos is not None)
