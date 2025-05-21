@@ -245,7 +245,7 @@ nT "notez" 5 "0 2 3 5 2"
 
 `python3 src/midi_to_tidalcycles.py -alcHj test_examples/jazz-chords_played-live_quadraphonic_125bpm.mid`
 
-produces the following code, to which you only need to add a `$:` before and a sound source
+produces the following code,
 
 ```javascript
 stack(
@@ -263,6 +263,9 @@ stack(
   .legato("2.0 0!3 3.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!4 2.0 0!2"),
 ).slow(8.0/4)
 ```
+To get this to work,
+copy and paste into the Strudel text editor,
+prefix with a `$:` or similar, and specify a sound source.
 
-see/hear the results (remixed with functions) in the Strudel REPL browser [here](https://strudel.cc/?kX71sUSkulwC).
+See/hear the results (remixed with functions) in the Strudel REPL browser [here](https://strudel.cc/?kX71sUSkulwC).
 
