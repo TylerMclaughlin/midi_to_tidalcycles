@@ -4,11 +4,14 @@ import numpy as np
 import argparse
 
 
-def midinote_to_note_name(midi_note):
+def midinote_to_note_name(midi_note, strudel_mode = False):
     if midi_note == 0.0:
         return "~"
     midi_note = int(midi_note)
     note_names_array = ["c", "cs", "d", "ds", "e", "f", "fs", "g", "gs", "a", "as", "b"]
+    if strudel_mode:
+        note_names_array = ["c", "db", "d", "eb", "e", "f", "gb", "g", "ab", "a", "bb", "b"]
+
     q, r = divmod(midi_note, 12) 
     note_name = note_names_array[r]
     octave_name = q  # q - 1  <- this is correct but tidal is off by an octave I think.
@@ -257,7 +260,7 @@ def print_tidal(_args, notes, vels, legatos):
 # strudel section
 
 def print_strudel_notes(_args, notes, strudel_indent):
-    notes = [midinote_to_note_name(l) for l in list(notes)]
+    notes = [midinote_to_note_name(l, strudel_mode = True) for l in list(notes)]
     if _args.consolidate:
         notes = simplify_repeats(notes)
         notes = " ".join(notes)
