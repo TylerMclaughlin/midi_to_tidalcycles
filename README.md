@@ -66,6 +66,7 @@ to standard out.  This "stack" expression is intended to be copied and pasted in
 -d, --debug             print MIDI event information, voice numbers, and quanta numbers for debugging
 -s, --shape             print MIDI shape (number of quanta and polyphonic voices)
 -H, --hide              hide inferred polyphony and midi file info (useful for automatic copying of tidalcycles code) 
+-j, --strudel           export strudel code! 
 ```
 
 ## More examples
@@ -238,3 +239,30 @@ autogenerates the following copyable TidalCycles code:
 nT "notez" 5 "0 2 3 5 2"
 # aT "ampz" 5 "0.79 0.79 0.79 0.79 0.79"
 ```
+
+
+### Strudel support (experimental)
+
+`python3 src/midi_to_tidalcycles.py -alcHj test_examples/jazz-chords_played-live_quadraphonic_125bpm.mid`
+
+produces the following code, to which you only need to add a `$:` before and a sound source
+
+```javascript
+stack(
+  note("e4 ~!3 gs4 ~!3 a4 ~!3 gs4 ~!3 g4 ~!3 gs4 ~!3 a4 ~!3 b4 ~!3")
+  .gain("0.47 0!3 0.43 0!3 0.47 0!3 0.42 0!3 0.12 0!3 0.5 0!3 0.2 0!3 0.51 0!3")
+  .legato("2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 3.0 0!3"),
+  note("c4 ~!3 f4 ~!3 e4 ~!3 b4 ~!3 a4 ~!3 d5 ~!3 g5 ~!3 c5 ~!3")
+  .gain("0.43 0!3 0.39 0!3 0.49 0!3 0.46 0!3 0.46 0!3 0.54 0!3 0.46 0!3 0.57 0!3")
+  .legato("2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 3.0 0!3"),
+  note("g4 ~!3 d4 ~!3 g4 ~!3 d5 ~!3 e5 ~!3 f5 ~!3 c5 ~!3 e5 ~!3")
+  .gain("0.5 0!3 0.46 0!3 0.48 0!3 0.48 0!3 0.31 0!3 0.55 0!3 0.37 0!3 0.61 0!3")
+  .legato("2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 3.0 0!3"),
+  note("a4 ~!3 b4 ~!3 c5 ~!3 f4 ~!3 c5 ~!3 b4 ~!3 e5 ~!4 g5 ~!2")
+  .gain("0.47 0!3 0.39 0!3 0.43 0!3 0.48 0!3 0.47 0!3 0.52 0!3 0.49 0!4 0.42 0!2")
+  .legato("2.0 0!3 3.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!3 2.0 0!4 2.0 0!2"),
+).slow(8.0/4)
+```
+
+see/hear the results (remixed with functions) in the Strudel REPL browser [here](https://strudel.cc/?kX71sUSkulwC).
+

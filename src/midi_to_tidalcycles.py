@@ -1,7 +1,6 @@
 from __future__ import print_function
 import midi
 import numpy as np
-import os
 import argparse
 
 
@@ -168,12 +167,15 @@ def simplify_repeats(list_pattern, simplify_zeros = True):
                 n_repeats = 0
 
     if simplify_zeros:
-        output_list = [x.replace('0.0!','0!') if isinstance(x, str) else x for x in output_list]
-        output_list = [x.replace(' 0.0 ',' 0 ') if isinstance(x, str) else x for x in output_list]
+        output_list = [str(x) for x in output_list]
+        output_list = [x.replace('0.0!', '0!') if x.startswith('0.0!') else x for x in output_list]
+        output_list = [x.replace('0.0', '0') if x == '0.0' else x for x in output_list]
+        #output_list = [x.replace('0.0!','0!') if isinstance(x, str) else x for x in output_list]
+        #output_list = [x.replace(' 0.0 ',' 0 ') if isinstance(x, str) else x for x in output_list]
     return output_list
 
-
-def print_midi_stack(notes, vels = None, legatos = None, consolidate = None, scale = False):
+def print_tidal_midi_stack(notes, vels = None, legatos = None,
+                     consolidate = None, scale = False):
     n_voices = len(notes[0,:])
     if scale:
         # just 12 tone for now
@@ -184,7 +186,7 @@ def print_midi_stack(notes, vels = None, legatos = None, consolidate = None, sca
     if add_stack:
         print("stack [")
     # iterate over voices
-    for j in range(0,n_voices):
+    for j in range(0, n_voices):
         if not scale:
             notes_names = [midinote_to_note_name(x) for x in notes[:,j]]
         elif scale:
@@ -248,10 +250,56 @@ def print_tidal(_args, notes, vels, legatos):
          # syncs tempo across all midis!
          slow_cmd = "slow (" + str(notes.shape[0]/_args.resolution) + "/4) $ "
          print(slow_cmd, end = "")
-         print_midi_stack(notes, vels, legatos, consolidate = _args.consolidate, scale = _args.scale)
+         print_tidal_midi_stack(notes, vels, legatos, consolidate = _args.consolidate, scale = _args.scale)
          if _args.brackets:
              print(':}')
 
+# strudel section
+
+def print_strudel_notes(_args, notes, strudel_indent):
+    notes = [midinote_to_note_name(l) for l in list(notes)]
+    if _args.consolidate:
+        notes = simplify_repeats(notes)
+        notes = " ".join(notes)
+    print(f'{strudel_indent}note("{notes}")', end = "")
+
+def print_strudel_vels(_args, vels, strudel_indent = "\n  "):
+    if _args.amp:
+        vels = [vel_to_amp(v) for v in vels]
+        if _args.consolidate:
+            vels = simplify_repeats(vels)
+        fvels = " ".join([str(l) for l in vels])
+        print(f'{strudel_indent}.gain("{fvels}")', end = "")
+
+def print_strudel_legatos(_args, legatos, strudel_indent = "\n  "):
+    if _args.legato:
+        if _args.consolidate:
+            legatos = simplify_repeats(legatos)
+        flegatos = " ".join([str(l) for l in legatos])
+        print(f'{strudel_indent}.legato("{flegatos}")', end = "")
+
+def print_strudel(_args, notes, vels, legatos, strudel_indent = "\n  "):
+    n_voices = notes.shape[1]
+    #print(n_voices)
+    if n_voices == 1:
+        print_strudel_notes(_args, notes, strudel_indent)
+        print_strudel_vels(_args, vels[:,0], strudel_indent)
+        print_strudel_legatos(_args, legatos[:,0], strudel_indent)
+    elif n_voices > 1:
+        print(f'stack(', end = "")
+        for v in range(n_voices):
+            print_strudel_notes(_args, notes[:,v], strudel_indent)
+            print_strudel_vels(_args, vels[:,v], strudel_indent)
+            print_strudel_legatos(_args, legatos[:,v], strudel_indent)
+            print(",", end = "")
+        # closing the stack
+        print("\n)", end = "")
+    # fix tempo
+    if n_voices > 1:
+        slow_cmd = f".slow({notes.shape[0]/_args.resolution}/4)"
+    else:
+        slow_cmd = f"\n.slow({notes.shape[0]/_args.resolution}/4)"
+    print(slow_cmd)
 
 
 
@@ -295,3 +343,5 @@ if __name__ == "__main__":
              print(notes.shape[1])
          if not args.strudel: 
              print_tidal(args, notes, vels, legatos)
+         else:
+             print_strudel(args, notes, vels, legatos)
