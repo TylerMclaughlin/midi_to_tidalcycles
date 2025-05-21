@@ -238,6 +238,21 @@ def print_midi_stack(notes, vels = None, legatos = None, consolidate = None, sca
             print("     ]")  
 
 
+def print_tidal(_args, notes, vels, legatos):
+         if _args.brackets:
+             print(':{')
+         # make a let statement
+         if len(_args.name) != 0:
+             print("let " + args.name + " = ", end = "")
+
+         # syncs tempo across all midis!
+         slow_cmd = "slow (" + str(notes.shape[0]/_args.resolution) + "/4) $ "
+         print(slow_cmd, end = "")
+         print_midi_stack(notes, vels, legatos, consolidate = _args.consolidate, scale = _args.scale)
+         if _args.brackets:
+             print(':}')
+
+
 
 
 
@@ -254,6 +269,7 @@ if __name__ == "__main__":
     parser.add_argument("--name","-n", default = "",  type = str, help = "make a variable and name it")
     parser.add_argument("--brackets","-b", const = True,  default = False, help = "add :} and {: brackets before and after", action = 'store_const')
     parser.add_argument("--scale","-s", const = True, default = False, help = "prints notes in a scale", action = 'store_const')
+    parser.add_argument("--strudel","-j", const = True, default = False, help = "prints strudel code", action = 'store_const')
     parser.add_argument("--hide","-H", const = True, default = False, help = "hide printing name of midi file and inferred polyphony", action = 'store_const')
     args = parser.parse_args()
     for midi_file in args.midi_files:
@@ -277,15 +293,5 @@ if __name__ == "__main__":
              print(notes.shape[0])
              print('voices: ',end = '')
              print(notes.shape[1])
-         if args.brackets:
-             print(':{')
-         # make a let statement
-         if len(args.name) != 0:
-             print("let " + args.name + " = ", end = "")
-
-         # syncs tempo across all midis!
-         slow_cmd = "slow (" + str(notes.shape[0]/args.resolution) + "/4) $ "
-         print(slow_cmd, end = "")
-         print_midi_stack(notes, vels, legatos, consolidate = args.consolidate, scale = args.scale)
-         if args.brackets:
-             print(':}')
+         if not args.strudel: 
+             print_tidal(args, notes, vels, legatos)
