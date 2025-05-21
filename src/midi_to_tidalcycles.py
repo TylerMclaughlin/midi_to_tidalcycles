@@ -251,6 +251,8 @@ if __name__ == "__main__":
     parser.add_argument("--legato","-l", const = True, default = False, help = "print legato pattern", action = 'store_const')
     parser.add_argument("--amp","-a", const = True, default = False, help = "print amplitude pattern", action = 'store_const')
     parser.add_argument("--consolidate","-c", const = True, default = False, help = "consolidate repeated notes and values with '!' notation", action = 'store_const')
+    parser.add_argument("--name","-n", default = "",  type = str, help = "make a variable and name it")
+    parser.add_argument("--brackets","-b", const = True,  default = False, help = "add :} and {: brackets before and after", action = 'store_const')
     parser.add_argument("--scale","-s", const = True, default = False, help = "prints notes in a scale", action = 'store_const')
     parser.add_argument("--hide","-H", const = True, default = False, help = "hide printing name of midi file and inferred polyphony", action = 'store_const')
     args = parser.parse_args()
@@ -275,7 +277,15 @@ if __name__ == "__main__":
              print(notes.shape[0])
              print('voices: ',end = '')
              print(notes.shape[1])
+         if args.brackets:
+             print(':{')
+         # make a let statement
+         if len(args.name) != 0:
+             print("let " + args.name + " = ", end = "")
+
          # syncs tempo across all midis!
          slow_cmd = "slow (" + str(notes.shape[0]/args.resolution) + "/4) $ "
          print(slow_cmd, end = "")
          print_midi_stack(notes, vels, legatos, consolidate = args.consolidate, scale = args.scale)
+         if args.brackets:
+             print(':}')
