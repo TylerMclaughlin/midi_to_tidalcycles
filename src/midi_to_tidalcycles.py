@@ -264,7 +264,7 @@ def print_strudel_notes(_args, notes, strudel_indent):
     if _args.consolidate:
         notes = simplify_repeats(notes)
         notes = " ".join(notes)
-    print(f'{strudel_indent}note("{notes}")', end = "")
+    print(f'{strudel_indent}note(`{notes}`)', end = "")
 
 def print_strudel_vels(_args, vels, strudel_indent = "\n  "):
     if _args.amp:
@@ -272,14 +272,14 @@ def print_strudel_vels(_args, vels, strudel_indent = "\n  "):
         if _args.consolidate:
             vels = simplify_repeats(vels)
         fvels = " ".join([str(l) for l in vels])
-        print(f'{strudel_indent}.gain("{fvels}")', end = "")
+        print(f'{strudel_indent}.gain(`{fvels}`)', end = "")
 
 def print_strudel_legatos(_args, legatos, strudel_indent = "\n  "):
     if _args.legato:
         if _args.consolidate:
             legatos = simplify_repeats(legatos)
         flegatos = " ".join([str(l) for l in legatos])
-        print(f'{strudel_indent}.legato("{flegatos}")', end = "")
+        print(f'{strudel_indent}.legato(`{flegatos}`)', end = "")
 
 def print_strudel(_args, notes, vels, legatos, strudel_indent = "\n  "):
     n_voices = notes.shape[1]
